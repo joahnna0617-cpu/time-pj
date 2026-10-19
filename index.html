@@ -242,11 +242,18 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
 .flow-tag .n { font-family: var(--font-mono); font-size: 14px; font-weight: 600; letter-spacing: .08em; }
 .flow-tag .t { font-size: 24px; line-height: 1.3; }
 @media (hover: hover) { .flow-tag:hover { background: var(--verm); } }
+/* 05 수령: 웹이 아닌 보관소 화면에서 진행 → 흐리게, 점선 */
+.flow-tag.is-offsite { border-style: dashed; border-color: var(--ink-3); color: var(--ink-3); background: transparent; padding-top: 30px; padding-bottom: 12px; }
+.flow-tag.is-offsite::before { border-color: var(--ink-3); background: transparent; }
+.flow-tag.is-offsite .t { white-space: nowrap; }
+.flow-sub { font-family: var(--font-mono); font-size: 12px; letter-spacing: .04em; }
+@media (hover: hover) { .flow-tag.is-offsite:hover { background: transparent; } }
 .flow-link { flex: 1; min-width: 20px; height: 0; border-top: 2.5px dotted var(--ink); }
 @media (max-width: 767px) {
   .flow { flex-direction: column; align-items: flex-start; }
   .flow-tag { flex-direction: row; gap: 14px; padding: 16px 22px 16px 46px; border-radius: 10px 6px 6px 10px; }
   .flow-tag::before { top: 50%; left: 16px; margin: -6.5px 0 0; }
+  .flow-tag.is-offsite { flex-wrap: wrap; align-items: baseline; row-gap: 0; }
   .flow-link { flex: none; width: 0; height: 26px; min-width: 0; border-top: 0; border-left: 2.5px dotted var(--ink); margin-left: 56px; }
 }
 
@@ -471,7 +478,7 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
 .swap-empty { margin-top: 16px; font-size: 18px; color: var(--ink-2); }
 
 /* ================================================================
- * 10. 교환소 · 수령증
+ * 10. 교환소 · 보관소로 보내기
  * ================================================================ */
 .exchange-visual { display: flex; flex-direction: column; align-items: center; gap: 30px; }
 .exchange-panel { margin: clamp(48px, 6vw, 72px) auto 0; max-width: 880px; padding: 36px 32px; border-radius: var(--r-lg); border: 2px solid var(--ink); background: rgba(244, 239, 228, 0.8); }
@@ -494,16 +501,34 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
 @media (hover: hover) { .swap-card:hover { background: var(--verm-wash); } .swap-card[aria-pressed="true"]:hover { background: var(--verm); } }
 .panel-placeholder { margin-top: 10px; color: var(--ink-2); font-size: 19px; }
 .complete { margin: 40px auto 0; max-width: 880px; padding: 20px 26px; border-radius: var(--r-pill); text-align: center; background: var(--verm); border: 2px solid var(--ink); font-weight: 700; font-size: clamp(20px, 2.4vw, 24px); }
-.claim { margin-top: clamp(120px, 14vw, 180px); display: flex; flex-direction: column; align-items: center; gap: 22px; }
-.claim-head { text-align: center; margin-bottom: 12px; }
-.capture { width: 100%; max-width: 530px; padding: 28px; background: var(--paper); }
-.capture .paper { max-width: none; }
-.claim-ring { position: relative; margin: 20px auto 4px; }
-.claim-ring .ring { --ring-size: 250px; }
-.stamp { position: absolute; right: -6px; bottom: -14px; z-index: 2; width: 132px; height: 132px; transform: rotate(-14deg); }
+.stamp { position: absolute; z-index: 2; width: 132px; height: 132px; transform: rotate(-14deg); pointer-events: none; mix-blend-mode: multiply; }
 .stamp svg { display: block; width: 100%; height: 100%; }
-.claim-note { font-size: 17px; color: var(--ink-2); text-align: center; max-width: 470px; }
-.claim-note.is-error { color: var(--ink); background: var(--verm-wash); padding: 4px 12px; }
+
+.send-wrap { display: flex; flex-direction: column; align-items: center; gap: 28px; }
+.send-stamp { right: 18px; bottom: 14px; width: 118px; height: 118px; opacity: .92; }
+.send-wrap.is-sent .send-stamp { animation: lft-stamp .45s var(--ease-out) both; }
+@keyframes lft-stamp { from { opacity: 0; transform: rotate(-14deg) scale(1.5); } to { opacity: .92; transform: rotate(-14deg); } }
+@media (prefers-reduced-motion: reduce) { .send-wrap.is-sent .send-stamp { animation: none; } }
+.send-wrap .paper-foot { min-height: 104px; }
+.send-quote:empty::before { content: '(비어 있음)'; color: var(--ink-3); font-size: 17px; }
+.send-form { width: 100%; max-width: 470px; display: flex; flex-direction: column; gap: 14px; }
+.send-form .field input { font-family: var(--font-body); font-size: 18px; }
+.send-count { margin-top: 6px; text-align: right; font-size: 14px; color: var(--ink-2); }
+.send-btn { width: 100%; }
+.send-note { font-size: 17px; color: var(--ink-2); text-align: center; min-height: 1.5em; }
+.send-note.is-error { color: var(--ink); background: var(--verm-wash); padding: 4px 12px; }
+.send-done {
+  width: 100%; max-width: 470px; padding: 26px 24px; border: 2px solid var(--ink); border-radius: var(--r-lg);
+  background: var(--verm); text-align: center; font-family: var(--font-head); font-weight: 700; font-size: clamp(19px, 2.2vw, 22px); line-height: 1.6;
+}
+.send-done-no { margin-bottom: 8px; }
+.send-done-no strong { font-weight: 600; font-size: .92em; word-break: break-all; }
+@media (max-width: 480px) {
+  .paper { padding: 32px 22px 28px; font-size: 15px; }
+  .perf { margin-inline: -22px; }
+  .send-stamp { width: 100px; height: 100px; right: 10px; bottom: 10px; }
+  .send-wrap .paper-foot { min-height: 88px; }
+}
 
 /* ================================================================
  * 11. 푸터 · 설정
@@ -618,7 +643,7 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
         <li class="flow-link" aria-hidden="true"></li>
         <li class="flow-tag"><span class="n">04</span><span class="t">환산</span></li>
         <li class="flow-link" aria-hidden="true"></li>
-        <li class="flow-tag"><span class="n">05</span><span class="t">수령</span></li>
+        <li class="flow-tag is-offsite" title="수령은 웹이 아닌 보관소 화면에서 진행됩니다"><span class="n">05</span><span class="t">보관소에서 수령</span><span class="flow-sub">웹 밖에서 진행</span></li>
       </ol>
     </div>
   </section>
@@ -762,39 +787,66 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
         </div>
         <div class="exchange-panel" id="exchange-panel" aria-live="polite"></div>
         <p class="complete" id="complete" role="status" hidden></p>
-        <div class="claim reveal">
-          <header class="claim-head"><p class="label" lang="en">RECEIPT</p><h2 class="section-title">되찾은 하루</h2></header>
-          <div class="capture" id="claim-capture">
-            <article class="paper" aria-labelledby="cl-title">
-              <div class="paper-head">
-                <p class="paper-brand" lang="en">Lost &amp; Found: Time</p>
-                <h3 class="paper-title" id="cl-title">되찾은 하루 수령증</h3>
-              </div>
-              <dl class="paper-rows">
-                <div><dt>수령일</dt><dd id="cl-date">-</dd></div>
-                <div><dt>접수번호</dt><dd id="cl-no">-</dd></div>
-              </dl>
-              <div class="claim-ring" id="claim-ring">
-                <div class="stamp" id="cl-stamp" hidden>
-                  <svg viewBox="0 0 120 120" role="img" aria-label="수령 완료 도장">
-                    <defs><path id="stamp-arc" d="M60 60 m-44 0 a44 44 0 1 1 88 0 a44 44 0 1 1 -88 0"/></defs>
-                    <circle cx="60" cy="60" r="56" fill="none" stroke="#E8442A" stroke-width="4"/>
-                    <circle cx="60" cy="60" r="36" fill="none" stroke="#E8442A" stroke-width="2"/>
-                    <text font-family="IBM Plex Mono, monospace" font-size="11" font-weight="600" letter-spacing="3" fill="#E8442A"><textPath href="#stamp-arc">LOST · FOUND · TIME · RECLAIMED ·</textPath></text>
-                    <text x="60" y="58" text-anchor="middle" font-family="Hahmlet, serif" font-size="20" font-weight="700" fill="#E8442A">수령</text>
-                    <text x="60" y="78" text-anchor="middle" font-family="Hahmlet, serif" font-size="20" font-weight="700" fill="#E8442A">완료</text>
-                  </svg>
-                </div>
-              </div>
-              <div class="perf" aria-hidden="true"></div>
-              <ul class="paper-items is-claim" id="cl-items"></ul>
-              <div class="perf" aria-hidden="true"></div>
-              <p class="paper-note-label">비고</p>
-              <p class="paper-note-text" id="cl-note"></p>
-            </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 보관소로 보내기 ============ -->
+  <section class="section" id="send" aria-labelledby="send-title">
+    <div class="container">
+      <header class="section-head is-center reveal">
+        <p class="label" lang="en">SEND</p>
+        <h2 class="section-title" id="send-title">보관소로 보내기</h2>
+        <p class="lede">접수증을 보관소로 보내면 여기서의 접수는 끝납니다. 수령은 보관소 화면에서 직접 하게 됩니다.</p>
+      </header>
+      <p class="over-badge js-over-badge" role="status" hidden></p>
+      <div class="send-wrap reveal">
+        <article class="paper" id="send-receipt" aria-labelledby="sr-title">
+          <div class="paper-head">
+            <p class="paper-brand" lang="en">Lost &amp; Found: Time</p>
+            <h3 class="paper-title" id="sr-title">분실물 접수증</h3>
           </div>
-          <button type="button" class="btn btn-primary" id="save-claim" disabled>수령증 발급</button>
-          <p class="claim-note" id="claim-note" aria-live="polite"></p>
+          <dl class="paper-rows">
+            <div><dt>접수번호</dt><dd id="sr-no">-</dd></div>
+            <div><dt>접수일시</dt><dd id="sr-date">-</dd></div>
+            <div><dt>상태</dt><dd id="sr-status">보내기 전</dd></div>
+          </dl>
+          <div class="perf" aria-hidden="true"></div>
+          <ul class="paper-items" id="sr-items"></ul>
+          <div class="paper-total"><span>분실 시간 합계</span><span id="sr-total">0시간</span></div>
+          <div class="perf" aria-hidden="true"></div>
+          <p class="paper-note-label">교환소에서 고른 행동</p>
+          <ul class="paper-items is-claim send-actions" id="sr-actions"></ul>
+          <div class="perf" aria-hidden="true"></div>
+          <p class="paper-note-label">한마디</p>
+          <p class="paper-note-text send-quote" id="sr-message"></p>
+          <div class="paper-foot">
+            <span>보관 기한: 없음</span>
+          </div>
+          <div class="stamp send-stamp">
+            <svg viewBox="0 0 120 120" role="img" aria-label="접수됨 도장">
+              <defs><path id="send-stamp-arc" d="M60 60 m-44 0 a44 44 0 1 1 88 0 a44 44 0 1 1 -88 0"/></defs>
+              <circle cx="60" cy="60" r="56" fill="none" stroke="#E8442A" stroke-width="4"/>
+              <circle cx="60" cy="60" r="36" fill="none" stroke="#E8442A" stroke-width="2"/>
+              <text font-family="IBM Plex Mono, monospace" font-size="11" font-weight="600" letter-spacing="1.6" fill="#E8442A"><textPath href="#send-stamp-arc">LOST · FOUND · TIME · RECEIVED ·</textPath></text>
+              <text x="60" y="68" text-anchor="middle" font-family="Hahmlet, serif" font-size="21" font-weight="700" fill="#E8442A">접수됨</text>
+            </svg>
+          </div>
+        </article>
+
+        <form class="send-form" id="send-form" novalidate>
+          <div class="field">
+            <label for="send-message">이 시간에 하고 싶은 말</label>
+            <input type="text" id="send-message" name="message" maxlength="30" autocomplete="off" placeholder="예: 내일은 산책을 하고 싶어요" aria-describedby="send-count">
+            <p class="send-count mono" id="send-count">0/30</p>
+          </div>
+          <button type="submit" class="btn btn-primary send-btn" id="send-btn">보관소로 보내기</button>
+          <p class="send-note" id="send-note" aria-live="polite"></p>
+        </form>
+
+        <div class="send-done" id="send-done" role="status" hidden>
+          <p class="send-done-no">접수번호 <strong class="mono" id="send-done-no">-</strong>번.</p>
+          <p>당신의 시간은 보관소 모래 속에 보관되었습니다.<br>보관소 화면에서 직접 찾아가세요.</p>
         </div>
       </div>
     </div>
@@ -803,7 +855,7 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
 
 <footer class="site-footer">
   <p class="f-logo" lang="en">Lost &amp; Found: Time</p>
-  <p>입력한 시간은 이 브라우저에만 저장됩니다. AI 접수증을 만들 때만 카테고리별 시간이 OpenRouter로 전송됩니다.</p>
+  <p>입력한 시간은 이 브라우저에만 저장됩니다. AI 접수증을 만들 때만 카테고리별 시간이 OpenRouter로 전송되고, '보관소로 보내기'를 누르면 접수증과 한마디가 보관소로 전송됩니다.</p>
   <p class="storage-note" id="storage-note" hidden></p>
 </footer>
 
@@ -2951,7 +3003,6 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
     src.textContent = r.source === 'ai' ? TEXTS.sourceAi : TEXTS.sourceFallback;
     src.classList.toggle('is-ai', r.source === 'ai');
     src.hidden = false;
-    renderClaimNote();
   }
 
   /** 24h 초과 상태: 네트워크 없이 lastValid 기준 캐시(같은 해시의 AI 결과) 또는 폴백 문장을 표시 */
@@ -3060,7 +3111,6 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
    * 섹션 5 — 찾아가기 (시간 교환소)
    * ================================================================ */
   var CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#1A1714" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
-  var h2cState = 'loading';
   var wasComplete = false;
 
   function buildExchange() {
@@ -3084,23 +3134,6 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
       summary: ringSummary('교환소 링')
     });
     exchangeSand = new Sand(rings.exchange);
-    rings.claim = new Ring($('claim-ring'), {
-      static: true, ticks: true,
-      center: function () {
-        var active = DRIFT_IDS.filter(function (id) { return lastValid[id] > 0; });
-        var n = active.filter(function (id) { return !!state.reclaimed[id]; }).length;
-        return { label: '되찾은 칸', num: n + '/' + active.length, unit: '' };
-      },
-      summary: ringSummary('되찾은 하루 링')
-    });
-
-    $('save-claim').addEventListener('click', guard('save', saveClaimImage));
-    function onH2C() { h2cState = window.__lftH2C === 'ok' && typeof window.html2canvas === 'function' ? 'ok' : (window.__lftH2C === 'error' ? 'error' : h2cState); renderClaimNote(); }
-    window.addEventListener('lft:h2c', guard('h2c', onH2C));
-    if (window.__lftH2C) onH2C();
-    setTimeout(function () {
-      if (h2cState === 'loading') { h2cState = typeof window.html2canvas === 'function' ? 'ok' : 'error'; renderClaimNote(); }
-    }, 12000);
   }
 
   function selectDrift(id) {
@@ -3130,6 +3163,7 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
   function renderExchange() {
     var restore = focusKeyOf(document.activeElement);
     guard('exchange render inner', renderExchangeInner)();
+    guard('send render', renderSend)(); // 교환 결과가 보낼 접수증에 반영된다
     guard('pile', updatePile)(); // 되찾으면 하단 모래 더미가 줄어든다
     if (restore) {
       var target = document.querySelector(restore);
@@ -3148,7 +3182,6 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
 
     var res = calc.ringSegments(lastValid, { reclaimed: state.reclaimed });
     rings.exchange.set(res);
-    rings.claim.set(res, { instant: true });
 
     // 조각 버튼 목록 (접근성: 링과 동일 기능)
     var chips = $('exchange-chips');
@@ -3177,8 +3210,6 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
       rings.exchange.root.classList.add('is-complete');
     } else if (!done) rings.exchange.root.classList.remove('is-complete');
     wasComplete = done;
-
-    renderClaim(res, done);
   }
 
   function renderPanel() {
@@ -3224,89 +3255,155 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
     });
   }
 
-  function renderClaim(res, done) {
+  /* ================================================================
+   * 섹션 6 — 보관소로 보내기 (수령은 TouchDesigner 보관소 화면에서)
+   * ================================================================ */
+  // Firebase Realtime Database REST 주소 (규칙에서 receipts 쓰기 허용 필요)
+  var RECEIPTS_URL = 'https://내프로젝트-default-rtdb.asia-southeast1.firebasedatabase.app/receipts.json';
+  var MESSAGE_MAX = 30;
+  var SENT_KEY = 'lft:sent'; // { 접수번호: { key, message, receivedAt } } — 같은 접수증 재전송 방지
+  var sentMem = {};
+  var sending = false;
+
+  function loadSent() {
+    try {
+      var o = JSON.parse(window.localStorage.getItem(SENT_KEY) || '{}');
+      if (o && typeof o === 'object') return o;
+    } catch (e) { /* 무시: 메모리 기록 사용 */ }
+    return sentMem;
+  }
+  function markSent(no, rec) {
+    var o = loadSent();
+    o[no] = rec;
+    sentMem = o;
+    try { window.localStorage.setItem(SENT_KEY, JSON.stringify(o)); } catch (e) { /* 메모리 기록만 유지 */ }
+  }
+
+  function clipMessage(v) { return Array.from(String(v || '').trim()).slice(0, MESSAGE_MAX).join(''); }
+
+  function exchangeList() {
+    var r = calc.cleanReclaimed(state.reclaimed, lastValid);
+    return DRIFT_IDS.filter(function (id) { return lastValid[id] > 0 && r[id]; }).map(function (id) {
+      var card = calc.conversionsFor(id, lastValid[id]).filter(function (c) { return c.id === r[id]; })[0];
+      return { id: id, label: CAT[id].label, hours: lastValid[id], actionId: r[id], action: card ? card.text : r[id] };
+    });
+  }
+
+  function buildSend() {
+    var input = $('send-message');
+    input.addEventListener('input', guard('send input', function () {
+      var v = Array.from(input.value);
+      if (v.length > MESSAGE_MAX) input.value = v.slice(0, MESSAGE_MAX).join('');
+      renderSendMessage();
+    }));
+    $('send-form').addEventListener('submit', guard('send', function (e) { e.preventDefault(); sendReceipt(); }));
+  }
+
+  function renderSendMessage() {
+    var rec = loadSent()[calc.receiptNo(lastValid, new Date())];
+    $('sr-message').textContent = rec ? rec.message : clipMessage($('send-message').value);
+    $('send-count').textContent = Array.from($('send-message').value).length + '/' + MESSAGE_MAX;
+  }
+
+  function renderSend() {
     var d = new Date();
-    $('cl-date').textContent = fmtDate(d);
-    $('cl-no').textContent = calc.receiptNo(lastValid, d);
-    var items = $('cl-items');
+    var no = calc.receiptNo(lastValid, d);
+    var rec = loadSent()[no];
+    var st = calc.summary(lastValid);
+    $('sr-no').textContent = no;
+    $('sr-date').textContent = rec ? rec.receivedAt : fmtDateTime(d);
+
+    var items = $('sr-items');
     clear(items);
     DRIFT_IDS.forEach(function (id) {
       if (!(lastValid[id] > 0)) return;
-      var seg = res.segments.filter(function (x) { return x.id === id; })[0];
       var li = h('li');
-      li.appendChild(h('span', null, CAT[id].label + ' ' + HM(lastValid[id])));
-      if (seg && seg.reclaimed) {
-        var card = calc.conversionsFor(id, lastValid[id]).filter(function (c) { return c.id === seg.reclaimed; })[0];
-        li.appendChild(h('span', null, '→ ' + (card ? card.text : seg.displayLabel)));
-      } else {
-        var dim = h('span', null, '보관 중');
-        dim.style.color = 'rgba(26,23,20,.72)'; dim.style.fontWeight = '400';
-        li.appendChild(dim);
-      }
+      li.appendChild(h('span', null, CAT[id].label));
+      li.appendChild(h('span', null, HM(lastValid[id])));
       items.appendChild(li);
     });
-    $('cl-stamp').hidden = reclaimedCount() === 0;
-    renderClaimNote();
+    if (!items.firstChild) items.appendChild(h('li', 'dim', '보관 중인 분실물이 없습니다'));
+    $('sr-total').textContent = HM(st.driftTotal);
+
+    var acts = $('sr-actions');
+    clear(acts);
+    exchangeList().forEach(function (x) {
+      var li = h('li');
+      li.appendChild(h('span', null, x.label + ' ' + HM(x.hours)));
+      li.appendChild(h('span', null, '→ ' + x.action));
+      acts.appendChild(li);
+    });
+    if (!acts.firstChild) acts.appendChild(h('li', 'dim', '고른 행동이 없습니다'));
+
+    renderSendMessage();
+    renderSendState(no, rec);
   }
 
-  function reclaimedCount() { return Object.keys(calc.cleanReclaimed(state.reclaimed, lastValid)).length; }
-
-  function renderClaimNote() {
-    var noteText = $('cl-note');
-    // 수령증 비고: 현재 lastValid와 같은 입력으로 만든 문장만 사용, 아니면 폴백
-    if (noteText) noteText.textContent = receipt.text && receipt.textHash === calc.hashDay(lastValid) ? receipt.text : ai.fallbackText(lastValid);
-    var btn = $('save-claim'), note = $('claim-note');
-    if (!btn) return;
-    var n = reclaimedCount();
+  function renderSendState(no, rec) {
+    var btn = $('send-btn'), note = $('send-note');
+    var sent = !!rec;
+    document.querySelector('.send-wrap').classList.toggle('is-sent', sent);
+    $('send-form').hidden = sent;
+    $('send-done').hidden = !sent;
+    $('send-done-no').textContent = no;
+    $('sr-status').textContent = sent ? '보관소에 보관됨' : '보내기 전';
+    if (sent) return;
+    $('send-message').disabled = sending;
     note.classList.remove('is-error');
-    if (h2cState === 'error') {
-      btn.disabled = true; note.textContent = TEXTS.captureUnavailable; note.classList.add('is-error');
-    } else if (h2cState === 'loading') {
-      btn.disabled = true; note.textContent = '이미지 저장 도구를 불러오는 중입니다…';
-    } else if (!n) {
-      btn.disabled = true; note.textContent = '조각을 1개 이상 교환하면 수령증을 저장할 수 있습니다.';
-    } else if (!btn.classList.contains('is-busy')) {
-      btn.disabled = false; note.textContent = 'PNG 이미지로 저장됩니다.';
-    }
+    btn.textContent = sending ? '보내는 중…' : '보관소로 보내기';
+    btn.disabled = sending || isOver;
+    note.textContent = sending ? '' : isOver ? '합계를 24시간으로 맞춘 뒤 보낼 수 있습니다.' : '보낸 접수증은 다시 보낼 수 없습니다.';
   }
 
-  function saveClaimImage() {
-    var btn = $('save-claim'), note = $('claim-note');
-    if (typeof window.html2canvas !== 'function') { h2cState = 'error'; renderClaimNote(); return; }
-    if (!reclaimedCount()) return;
-    btn.disabled = true; btn.classList.add('is-busy');
-    btn.textContent = '저장 중…';
-    var target = $('claim-capture');
-    var fonts = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
-    var wait = new Promise(function (res) { setTimeout(res, 1500); });
-    Promise.race([fonts, wait]).then(function () {
-      return window.html2canvas(target, { scale: 2, backgroundColor: CREAM, logging: false, useCORS: true });
-    }).then(function (canvas) {
-      return new Promise(function (resolve, reject) {
-        try {
-          if (canvas.toBlob) canvas.toBlob(function (b) { if (b) resolve(b); else reject(new Error('빈 이미지')); }, 'image/png');
-          else resolve(canvas.toDataURL('image/png'));
-        } catch (e) { reject(e); }
-      });
-    }).then(function (blobOrUrl) {
-      var url = typeof blobOrUrl === 'string' ? blobOrUrl : URL.createObjectURL(blobOrUrl);
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = 'lost-found-time-receipt-' + yyyymmdd(new Date()) + '.png';
-      document.body.appendChild(a);
-      a.click();
-      a.parentNode.removeChild(a);
-      if (typeof blobOrUrl !== 'string') setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
-      btn.classList.remove('is-busy');
-      btn.textContent = '수령증 발급';
-      renderClaimNote();
-      note.textContent = '수령증을 저장했습니다.';
+  function sendReceipt() {
+    if (sending || isOver) return;
+    var d = new Date();
+    var day = copyDay(lastValid);
+    var no = calc.receiptNo(day, d);
+    if (loadSent()[no]) { renderSend(); return; }
+    var note = $('send-note');
+    if (RECEIPTS_URL.indexOf('내프로젝트') !== -1) {
+      note.textContent = '보관소 주소(Firebase)가 아직 설정되지 않았습니다.';
+      note.classList.add('is-error');
+      return;
+    }
+    var st = calc.summary(day);
+    var message = clipMessage($('send-message').value);
+    var receivedAt = fmtDateTime(d);
+    var payload = {
+      receiptNo: no,
+      receivedAt: receivedAt,
+      lostTotal: st.driftTotal,
+      lostTotalText: HM(st.driftTotal),
+      lostByCategory: DRIFT_IDS.filter(function (id) { return day[id] > 0; }).map(function (id) {
+        return { id: id, label: CAT[id].label, hours: day[id], text: HM(day[id]) };
+      }),
+      exchanges: exchangeList(),
+      message: message,
+      status: 'stored',
+      timestamp: d.getTime()
+    };
+    sending = true;
+    renderSendState(no, null);
+    fetch(RECEIPTS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function (data) {
+      sending = false;
+      markSent(no, { key: data && data.name ? data.name : null, message: message, receivedAt: receivedAt });
+      renderSend();
+      var done = $('send-done');
+      if (done.scrollIntoView) done.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'nearest' });
     }).catch(function (e) {
-      warn('수령증 캡처 실패', e);
-      btn.classList.remove('is-busy');
-      btn.textContent = '수령증 발급';
-      h2cState = 'error';
-      renderClaimNote();
+      warn('보관소 전송 실패', e);
+      sending = false;
+      renderSendState(no, null);
+      note.textContent = '보관소에 보내지 못했습니다. 연결을 확인하고 다시 시도해 주세요.';
+      note.classList.add('is-error');
     });
   }
 
@@ -3530,6 +3627,7 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
     guard('archive', buildArchive)();
     guard('ledger', buildLedger)();
     guard('exchange', buildExchange)();
+    guard('send', buildSend)();
     guard('settings', buildSettings)();
 
     IDS.forEach(function (id) { guard('slider sync', syncSlider)(id); });
@@ -3550,11 +3648,5 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
   }
 })();
 /* ==== END ui ==== */
-</script>
-
-<!-- html2canvas: 로드 실패해도 페이지는 동작하고 저장 버튼만 비활성화된다 -->
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" async
-  onload="window.__lftH2C='ok';try{window.dispatchEvent(new Event('lft:h2c'))}catch(e){}"
-  onerror="window.__lftH2C='error';try{window.dispatchEvent(new Event('lft:h2c'))}catch(e){}"></script>
-</body>
+</script></body>
 </html>
