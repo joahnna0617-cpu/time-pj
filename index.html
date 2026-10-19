@@ -523,6 +523,8 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
 }
 .send-done-no { margin-bottom: 8px; }
 .send-done-no strong { font-weight: 600; font-size: .92em; word-break: break-all; }
+.send-again { margin-top: 18px; background: var(--paper); font-family: var(--font-body); }
+@media (hover: hover) { .send-again:hover:not(:disabled) { background: var(--paper); text-decoration: underline; text-decoration-color: var(--ink); } }
 @media (max-width: 480px) {
   .paper { padding: 32px 22px 28px; font-size: 15px; }
   .perf { margin-inline: -22px; }
@@ -847,6 +849,7 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
         <div class="send-done" id="send-done" role="status" hidden>
           <p class="send-done-no">접수번호 <strong class="mono" id="send-done-no">-</strong>번.</p>
           <p>당신의 시간은 보관소 모래 속에 보관되었습니다.<br>보관소 화면에서 직접 찾아가세요.</p>
+          <button type="button" class="btn send-again" id="send-again">새로 접수하기</button>
         </div>
       </div>
     </div>
@@ -2952,7 +2955,7 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
 
     // 접수증 (비고 제외 부분)
     var d = new Date();
-    $('lr-no').textContent = calc.receiptNo(lastValid, d);
+    $('lr-no').textContent = receiptNoFor(lastValid, d);
     $('lr-date').textContent = fmtDateTime(d);
     var items = $('lr-items');
     clear(items);
@@ -3262,8 +3265,27 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
   var RECEIPTS_URL = 'https://pj-time-c4921-default-rtdb.asia-southeast1.firebasedatabase.app/receipts.json';
   var MESSAGE_MAX = 30;
   var SENT_KEY = 'lft:sent'; // { 접수번호: { key, message, receivedAt } } — 같은 접수증 재전송 방지
+  var SEQ_KEY = 'lft:seq';   // '새로 접수하기' 횟수 — 접수번호에 섞어 같은 입력이어도 새 번호가 되게
   var sentMem = {};
+  var seqMem = 0;
   var sending = false;
+
+  function loadSeq() {
+    try { var n = parseInt(window.localStorage.getItem(SEQ_KEY) || '0', 10); if (n >= 0) return n; } catch (e) { /* 메모리 값 사용 */ }
+    return seqMem;
+  }
+  function saveSeq(n) {
+    seqMem = n;
+    try { window.localStorage.setItem(SEQ_KEY, String(n)); } catch (e) { /* 메모리 값만 유지 */ }
+  }
+  /** 접수번호: 처음 접수는 예전과 같고, '새로 접수하기' 뒤에는 순번을 섞어 새 번호 */
+  function receiptNoFor(day, d) {
+    var seq = loadSeq();
+    if (!seq) return calc.receiptNo(day, d);
+    var s = calc.hashDay(day) + ':' + seq, x = 0x811c9dc5;
+    for (var i = 0; i < s.length; i++) { x ^= s.charCodeAt(i); x = Math.imul(x, 0x01000193) >>> 0; }
+    return 'LF-' + yyyymmdd(d) + '-' + ('0000' + (x & 0xffff).toString(16).toUpperCase()).slice(-4);
+  }
 
   function loadSent() {
     try {
@@ -3297,17 +3319,33 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
       renderSendMessage();
     }));
     $('send-form').addEventListener('submit', guard('send', function (e) { e.preventDefault(); sendReceipt(); }));
+    $('send-again').addEventListener('click', guard('send again', newReceipt));
+  }
+
+  /** 보낸 뒤 '새로 접수하기': 입력(슬라이더·한마디·교환소 선택)을 비우고 새 접수번호로 접수 단계부터 */
+  function newReceipt() {
+    if (sending) return;
+    saveSeq(loadSeq() + 1);
+    state = { hours: calc.defaultDay(), reclaimed: {} };
+    selectedDrift = null;
+    storage.clearState();
+    $('send-message').value = '';
+    IDS.forEach(syncSlider);
+    update({ changed: null });
+    renderSend();
+    var report = $('report');
+    if (report && report.scrollIntoView) report.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
   }
 
   function renderSendMessage() {
-    var rec = loadSent()[calc.receiptNo(lastValid, new Date())];
+    var rec = loadSent()[receiptNoFor(lastValid, new Date())];
     $('sr-message').textContent = rec ? rec.message : clipMessage($('send-message').value);
     $('send-count').textContent = Array.from($('send-message').value).length + '/' + MESSAGE_MAX;
   }
 
   function renderSend() {
     var d = new Date();
-    var no = calc.receiptNo(lastValid, d);
+    var no = receiptNoFor(lastValid, d);
     var rec = loadSent()[no];
     var st = calc.summary(lastValid);
     $('sr-no').textContent = no;
@@ -3352,14 +3390,14 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
     note.classList.remove('is-error');
     btn.textContent = sending ? '보내는 중…' : '보관소로 보내기';
     btn.disabled = sending || isOver;
-    note.textContent = sending ? '' : isOver ? '합계를 24시간으로 맞춘 뒤 보낼 수 있습니다.' : '보낸 접수증은 다시 보낼 수 없습니다.';
+    note.textContent = sending ? '' : isOver ? '합계를 24시간으로 맞춘 뒤 보낼 수 있습니다.' : '한 번 보낸 접수증은 다시 보낼 수 없습니다. 보낸 뒤 새로 접수할 수 있어요.';
   }
 
   function sendReceipt() {
     if (sending || isOver) return;
     var d = new Date();
     var day = copyDay(lastValid);
-    var no = calc.receiptNo(day, d);
+    var no = receiptNoFor(day, d);
     if (loadSent()[no]) { renderSend(); return; }
     var note = $('send-note');
     if (RECEIPTS_URL.indexOf('내프로젝트') !== -1) {
