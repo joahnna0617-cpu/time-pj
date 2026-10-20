@@ -523,6 +523,8 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
 }
 .send-done-no { margin-bottom: 8px; }
 .send-done-no strong { font-weight: 600; font-size: .92em; word-break: break-all; }
+.send-bottle { display: inline-flex; align-items: center; gap: 10px; margin: 4px 0 12px; padding: 6px 16px; border: 2px solid var(--ink); border-radius: var(--r-pill); background: var(--paper); font-family: var(--font-body); font-weight: 600; font-size: 17px; }
+.send-bottle i { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--ink); flex: none; }
 .send-again { margin-top: 18px; background: var(--paper); font-family: var(--font-body); }
 @media (hover: hover) { .send-again:hover:not(:disabled) { background: var(--paper); text-decoration: underline; text-decoration-color: var(--ink); } }
 @media (max-width: 480px) {
@@ -848,6 +850,7 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
 
         <div class="send-done" id="send-done" role="status" hidden>
           <p class="send-done-no">접수번호 <strong class="mono" id="send-done-no">-</strong>번.</p>
+          <p class="send-bottle" id="send-bottle"><i id="send-bottle-dot" aria-hidden="true"></i><span id="send-bottle-text">당신의 병</span></p>
           <p>당신의 시간은 보관소 모래 속에 보관되었습니다.<br>보관소 화면에서 직접 찾아가세요.</p>
           <button type="button" class="btn send-again" id="send-again">새로 접수하기</button>
         </div>
@@ -3377,6 +3380,20 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
     renderSendState(no, rec);
   }
 
+  // 해변 보관소(TouchDesigner)의 병 표식과 같은 규칙: build_visual.py 의 RIBBONS / ribbon_index() / tag_number()
+  var RIBBONS = [['주홍', '#E8442A'], ['살구', '#F2957C'], ['겨자', '#D9A13B'], ['올리브', '#8A8F4E'],
+                 ['바다', '#6F8A91'], ['남색', '#2F4A6B'], ['자두', '#8E4B5E'], ['먹', '#3A2A20']];
+  function ribbonFor(no) {
+    var s = String(no), sum = 0;
+    for (var i = 0; i < s.length; i++) sum += (i + 1) * s.charCodeAt(i);
+    var r = RIBBONS[sum % RIBBONS.length];
+    return { name: r[0], color: r[1] };
+  }
+  function tagNo(no) {
+    var d = String(no).toUpperCase().replace(/[^0-9A-F]/g, '');
+    return ('0000' + (d.slice(-4) || '0')).slice(-4);
+  }
+
   function renderSendState(no, rec) {
     var btn = $('send-btn'), note = $('send-note');
     var sent = !!rec;
@@ -3384,6 +3401,9 @@ h1, h2, h3, h4, .section-title, .about-title, .ko-title, .intro-copy, .group-tit
     $('send-form').hidden = sent;
     $('send-done').hidden = !sent;
     $('send-done-no').textContent = no;
+    var rb = ribbonFor(no);
+    $('send-bottle-dot').style.background = rb.color;
+    $('send-bottle-text').textContent = '당신의 병: ' + rb.name + ' 리본 · No.' + tagNo(no);
     $('sr-status').textContent = sent ? '보관소에 보관됨' : '보내기 전';
     if (sent) return;
     $('send-message').disabled = sending;
